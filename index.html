@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wilmott QF 02 &mdash; Derivatives</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0a0a; --bg-card: #0d1117; --bg-code: #161b22;
+            --text-primary: #e6edf3; --text-secondary: #8b949e;
+            --accent: #fbbf24; --accent-dim: #fbbf2444; --accent-glow: #fbbf2433;
+            --accent-2: #f472b6; --accent-3: #a78bfa; --accent-4: #34d399;
+            --accent-5: #60a5fa;
+            --border: #21262d;
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --font-body: 'Inter', sans-serif;
+            --max-width: 900px;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body { background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-body); font-size: 17px; line-height: 1.7; overflow-x: hidden; }
+        .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 2rem 1.5rem; text-align: center; position: relative; }
+        .hero::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 700px; height: 600px; background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+        .hero > * { position: relative; z-index: 1; }
+        .series-label { font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 1rem; }
+        .hero h1 { font-family: var(--font-display); font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 700; color: var(--text-primary); line-height: 1.2; margin-bottom: 1rem; }
+        .hero h1 .accent { color: var(--accent); }
+        .hero .subtitle { font-size: 1.1rem; color: var(--text-secondary); max-width: 640px; margin-bottom: 2rem; }
+        .tags { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 2.5rem; }
+        .tag { font-family: var(--font-mono); font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: 999px; border: 1px solid var(--accent); color: var(--accent); background: var(--accent-dim); white-space: nowrap; }
+        .pipeline { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.25rem; margin-bottom: 1rem; max-width: var(--max-width); }
+        .pipeline-step { font-family: var(--font-mono); font-size: 0.7rem; padding: 0.3rem 0.7rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; color: var(--text-secondary); white-space: nowrap; }
+        .pipeline-arrow { color: var(--accent); font-size: 0.9rem; font-weight: 700; }
+        .slide { min-height: 100vh; max-width: var(--max-width); margin: 0 auto; padding: 4rem 1.5rem; position: relative; display: flex; flex-direction: column; justify-content: center; }
+        .slide-number { font-family: var(--font-display); font-size: 5rem; font-weight: 700; color: var(--accent-dim); position: absolute; top: 2rem; right: 1.5rem; line-height: 1; user-select: none; }
+        .slide h2 { font-family: var(--font-display); font-size: 1.9rem; font-weight: 700; color: var(--accent); margin-bottom: 1.5rem; line-height: 1.25; }
+        .slide h3 { font-family: var(--font-display); font-size: 1.3rem; font-weight: 600; color: var(--text-primary); margin-top: 1.5rem; margin-bottom: 0.75rem; }
+        .slide p { margin-bottom: 1rem; color: var(--text-secondary); }
+        .slide p strong { color: var(--text-primary); }
+        .slide ul, .slide ol { margin-bottom: 1rem; padding-left: 1.5rem; color: var(--text-secondary); }
+        .slide li { margin-bottom: 0.4rem; }
+        .slide li strong { color: var(--text-primary); }
+        .slide code { background: var(--bg-code); padding: 0.1rem 0.35rem; border-radius: 3px; font-family: var(--font-mono); font-size: 0.85em; color: var(--accent); }
+        .diagram-grid { display: grid; gap: 0.75rem; margin: 1.5rem 0; padding: 1.5rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; }
+        .diagram-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+        .diagram-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+        .diagram-grid.cols-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+        .diagram-panel { padding: 1rem; background: var(--bg-code); border: 1px solid var(--border); border-radius: 6px; }
+        .diagram-panel.accent-border { border-left: 3px solid var(--accent); }
+        .diagram-panel.r { border-left: 3px solid var(--accent-2); }
+        .diagram-panel.p { border-left: 3px solid var(--accent-3); }
+        .diagram-panel.g { border-left: 3px solid var(--accent-4); }
+        .diagram-panel.b { border-left: 3px solid var(--accent-5); }
+        .diagram-panel h4 { font-family: var(--font-display); font-size: 1rem; color: var(--accent); margin-bottom: 0.5rem; }
+        .diagram-panel.r h4 { color: var(--accent-2); }
+        .diagram-panel.p h4 { color: var(--accent-3); }
+        .diagram-panel.g h4 { color: var(--accent-4); }
+        .diagram-panel.b h4 { color: var(--accent-5); }
+        .diagram-panel p, .diagram-panel ul { font-size: 0.9rem; }
+        .callout { background: var(--bg-card); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 1rem 1.25rem; margin: 1.25rem 0; }
+        .callout p { margin-bottom: 0; }
+        .callout .callout-label { font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.3rem; }
+        .quote { font-family: var(--font-display); font-size: 1.1rem; font-style: italic; color: var(--text-primary); padding: 1rem 1.5rem; border-left: 3px solid var(--accent); background: var(--bg-card); margin: 1.25rem 0; border-radius: 0 8px 8px 0; }
+        .quote .attr { display: block; margin-top: 0.5rem; font-style: normal; font-size: 0.85rem; color: var(--text-secondary); font-family: var(--font-mono); }
+        .canvas-wrap { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin: 1.25rem 0; overflow-x: auto; }
+        .canvas-wrap canvas, .canvas-wrap svg { display: block; margin: 0 auto; max-width: 100%; }
+        .control-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin: 1.25rem 0; }
+        .control-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+        .control-row label { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-secondary); min-width: 160px; }
+        .control-row input[type="range"] { flex: 1; min-width: 150px; accent-color: var(--accent); }
+        .control-row select, .control-row input[type="number"] { background: var(--bg-code); border: 1px solid var(--border); color: var(--text-primary); border-radius: 4px; padding: 0.3rem 0.5rem; font-family: var(--font-mono); font-size: 0.8rem; }
+        .control-row .val { font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); min-width: 80px; text-align: right; }
+        .btn { font-family: var(--font-mono); font-size: 0.8rem; padding: 0.4rem 0.9rem; background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent); border-radius: 4px; cursor: pointer; transition: background 0.15s ease; }
+        .btn:hover { background: rgba(251,191,36,0.25); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn.secondary { background: var(--bg-code); color: var(--text-secondary); border-color: var(--border); }
+        .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.5rem; margin-top: 0.75rem; }
+        .metric { background: var(--bg-code); border: 1px solid var(--border); border-radius: 6px; padding: 0.6rem 0.8rem; text-align: center; }
+        .metric .metric-label { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em; }
+        .metric .metric-value { font-family: var(--font-display); font-size: 1.25rem; color: var(--accent); font-weight: 600; margin-top: 0.2rem; }
+        .contents-list { list-style: none; padding-left: 0; counter-reset: contents; }
+        .contents-list li { counter-increment: contents; padding: 0.6rem 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 1rem; }
+        .contents-list li:last-child { border-bottom: none; }
+        .contents-list li::before { content: counter(contents, decimal-leading-zero); font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); min-width: 2rem; }
+        .contents-list a { color: var(--text-primary); text-decoration: none; }
+        .contents-list a:hover { color: var(--accent); }
+        .footer { text-align: center; padding: 3rem 1.5rem; color: var(--text-secondary); font-size: 0.85rem; border-top: 1px solid var(--border); max-width: var(--max-width); margin: 0 auto; }
+        .footer a { color: var(--accent); text-decoration: none; }
+        .katex { color: var(--text-primary); }
+        .katex-display { margin: 1rem 0; overflow-x: auto; overflow-y: hidden; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin: 1rem 0; }
+        th { background: var(--bg-code); color: var(--accent); font-weight: 600; text-align: left; padding: 0.6rem 0.85rem; border-bottom: 1px solid var(--border); font-family: var(--font-display); }
+        td { padding: 0.5rem 0.85rem; border-bottom: 1px solid var(--border); color: var(--text-secondary); vertical-align: top; }
+        tr:last-child td { border-bottom: none; }
+        tr:nth-child(even) td { background: rgba(13, 17, 23, 0.5); }
+        .leg-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; padding: 0.5rem 0.6rem; background: var(--bg-code); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 0.4rem; }
+        .leg-row label { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-secondary); min-width: 70px; }
+        .leg-row select, .leg-row input[type="number"] { background: var(--bg-primary); border: 1px solid var(--border); color: var(--text-primary); border-radius: 4px; padding: 0.25rem 0.4rem; font-family: var(--font-mono); font-size: 0.78rem; }
+        .leg-row .leg-rm { font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent-2); border: 1px solid var(--accent-2); background: transparent; border-radius: 4px; padding: 0.2rem 0.55rem; cursor: pointer; }
+        @media (max-width: 640px) {
+            .slide { padding: 3rem 1rem; min-height: auto; }
+            .slide-number { font-size: 3rem; top: 1.5rem; right: 1rem; }
+            .slide h2 { font-size: 1.5rem; }
+            .diagram-grid.cols-2, .diagram-grid.cols-3, .diagram-grid.cols-4 { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="hero">
+    <div class="series-label">Paul Wilmott Introduces Quantitative Finance &mdash; Deck 02</div>
+    <h1>Options and <span class="accent">Derivatives</span></h1>
+    <p class="subtitle">Calls, puts, payoff diagrams, put&ndash;call parity and the strategy zoo &mdash; the contracts that turn an underlying $S$ into a derivative.</p>
+
+    <div class="tags">
+        <span class="tag">calls</span><span class="tag">puts</span>
+        <span class="tag">strike</span><span class="tag">expiry</span>
+        <span class="tag">payoff</span><span class="tag">parity</span>
+        <span class="tag">spreads</span><span class="tag">straddles</span>
+    </div>
+
+    <div class="pipeline">
+        <span class="pipeline-step">underlying $S$</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">strike $K$</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">payoff $(S_T-K)^+$</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">premium $C, P$</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">strategies</span>
+    </div>
+</header>
+
+<section class="slide" id="slide-00">
+    <div class="slide-number">00</div>
+    <h2>Topics We'll Cover</h2>
+    <ul class="contents-list">
+        <li><a href="#slide-01">What an option is &mdash; the four cardinal positions</a></li>
+        <li><a href="#slide-02">Strike, expiry, premium, moneyness, exercise style</a></li>
+        <li><a href="#slide-03">Payoff diagrams &mdash; buyer and writer</a></li>
+        <li><a href="#slide-04">Writing options, margin, market conventions</a></li>
+        <li><a href="#slide-05">Put&ndash;call parity</a></li>
+        <li><a href="#slide-06">Binaries / digital options</a></li>
+        <li><a href="#slide-07">Vertical spreads &mdash; bulls and bears</a></li>
+        <li><a href="#slide-08">Straddles, strangles, risk reversals</a></li>
+        <li><a href="#slide-09">Butterflies, condors, calendars and OTC cousins</a></li>
+        <li><a href="#slide-10">Interactive: option strategy composer</a></li>
+    </ul>
+</section>
+
+<section class="slide" id="slide-01">
+    <div class="slide-number">01</div>
+    <h2>What an Option Is</h2>
+    <p>An <strong>option</strong> is a contract that gives its holder the <em>right but not the obligation</em> to trade an underlying asset $S$ at a fixed price $K$, on or before a fixed date $T$. The holder pays the writer a <strong>premium</strong> up front in exchange for that right.</p>
+
+    <div class="quote">
+        <p>"An option is the right, but not the obligation, to buy or sell an underlying at a prescribed price at a prescribed time in the future."</p>
+        <span class="attr">&mdash; Wilmott, Ch. 2</span>
+    </div>
+
+    <p>That single asymmetry &mdash; <em>right, not obligation</em> &mdash; is what separates an option from a forward (where you must transact) and is the entire reason an option has a non-trivial value.</p>
+
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel g">
+            <h4>Call option</h4>
+            <p>The right to <strong>buy</strong> $S$ at $K$.</p>
+            <p>Worth something when $S$ rises above $K$. Worthless if $S < K$ at expiry: don't exercise, walk away.</p>
+            <p>$$\text{payoff at }T = \max(S_T - K, 0).$$</p>
+        </div>
+        <div class="diagram-panel r">
+            <h4>Put option</h4>
+            <p>The right to <strong>sell</strong> $S$ at $K$.</p>
+            <p>Worth something when $S$ falls below $K$. Worthless if $S > K$ at expiry.</p>
+            <p>$$\text{payoff at }T = \max(K - S_T, 0).$$</p>
+        </div>
+    </div>
+
+    <h3>The four cardinal positions</h3>
+    <p>Every option strategy in this book is a sum of these four legs:</p>
+    <table>
+        <thead><tr><th>Position</th><th>You pay/receive</th><th>Payoff at $T$</th><th>View</th></tr></thead>
+        <tbody>
+            <tr><td>long call</td><td>pay $C$</td><td>$+(S_T-K)^+$</td><td>bullish, limited downside</td></tr>
+            <tr><td>short call</td><td>receive $C$</td><td>$-(S_T-K)^+$</td><td>bearish/neutral, unlimited risk</td></tr>
+            <tr><td>long put</td><td>pay $P$</td><td>$+(K-S_T)^+$</td><td>bearish, limited downside</td></tr>
+            <tr><td>short put</td><td>receive $P$</td><td>$-(K-S_T)^+$</td><td>bullish/neutral, capped upside</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout">
+        <div class="callout-label">Asymmetry, in one line</div>
+        <p>The buyer chooses whether to exercise; the writer must comply. The writer is paid the premium to take on that obligation.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-02">
+    <div class="slide-number">02</div>
+    <h2>Definitions: Strike, Expiry, Premium, Moneyness</h2>
+    <p>The contract is fully specified by a handful of parameters; the rest of the book is about pricing them.</p>
+
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>Contract parameters</h4>
+            <ul>
+                <li><strong>Strike $K$</strong> &mdash; the price at which the holder may transact.</li>
+                <li><strong>Expiry $T$</strong> &mdash; the last date on which the right exists.</li>
+                <li><strong>Premium $C$ or $P$</strong> &mdash; what the buyer pays today.</li>
+                <li><strong>Underlying $S$</strong> &mdash; the asset the option is written on.</li>
+            </ul>
+        </div>
+        <div class="diagram-panel b">
+            <h4>Exercise style</h4>
+            <ul>
+                <li><strong>European</strong> &mdash; exercise only at $T$.</li>
+                <li><strong>American</strong> &mdash; exercise at any time $t \le T$.</li>
+                <li><strong>Bermudan</strong> &mdash; exercise on a pre-specified set of dates.</li>
+            </ul>
+            <p>The book mostly prices Europeans; American early-exercise is treated by free-boundary problems (Deck 03 and onward).</p>
+        </div>
+    </div>
+
+    <h3>Moneyness</h3>
+    <table>
+        <thead><tr><th>State</th><th>Call</th><th>Put</th></tr></thead>
+        <tbody>
+            <tr><td>in the money (ITM)</td><td>$S > K$</td><td>$S < K$</td></tr>
+            <tr><td>at the money (ATM)</td><td>$S = K$</td><td>$S = K$</td></tr>
+            <tr><td>out of the money (OTM)</td><td>$S < K$</td><td>$S > K$</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Intrinsic and time value</h3>
+    <p>The premium decomposes into</p>
+    <p>$$C = \underbrace{\max(S-K,0)}_{\text{intrinsic}} + \underbrace{C - \max(S-K,0)}_{\text{time value}}.$$</p>
+    <p>The <strong>intrinsic value</strong> is what the option would pay if exercised immediately. The <strong>time value</strong> is everything else &mdash; the option holder's chance that the underlying moves further in their favour before expiry. For a European option, time value $\ge 0$; it decays to zero as $t \to T$.</p>
+
+    <div class="callout">
+        <div class="callout-label">Why an OTM option still has value</div>
+        <p>Even if $S < K$ today and the call is worthless if exercised now, there is still some probability the spot moves above $K$ before $T$. That residual probability &mdash; weighted by the discounted payoff &mdash; is the option's time value.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-03">
+    <div class="slide-number">03</div>
+    <h2>Payoff Diagrams</h2>
+    <p>Payoff diagrams plot the value of the position at expiry as a function of $S_T$. They ignore the premium &mdash; that comes in when we plot <em>profit</em>.</p>
+
+    <div class="canvas-wrap">
+        <canvas id="payoff-canvas" width="780" height="320"></canvas>
+    </div>
+
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel g">
+            <h4>Long call</h4>
+            <p>$$V_T = \max(S_T - K, 0).$$</p>
+            <p>Flat at zero below $K$, slope $+1$ above. Unlimited upside; downside capped at the premium $C$.</p>
+        </div>
+        <div class="diagram-panel r">
+            <h4>Short call</h4>
+            <p>$$V_T = -\max(S_T - K, 0).$$</p>
+            <p>Mirror image. Best case: keep the premium and walk away. Worst case: unlimited loss.</p>
+        </div>
+        <div class="diagram-panel p">
+            <h4>Long put</h4>
+            <p>$$V_T = \max(K - S_T, 0).$$</p>
+            <p>Slope $-1$ below $K$, flat above. Best when the underlying collapses; bounded loss = premium.</p>
+        </div>
+        <div class="diagram-panel b">
+            <h4>Short put</h4>
+            <p>$$V_T = -\max(K - S_T, 0).$$</p>
+            <p>Maximum gain = premium. Loss bounded only by $S_T \ge 0$; equivalent to being long the stock plus a fixed liability.</p>
+        </div>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">Mirror principle</div>
+        <p>Buyer's payoff + Writer's payoff = $0$ at every $S_T$. The option is a zero-sum contract; the premium is the price at which both sides agree the bet is fair.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-04">
+    <div class="slide-number">04</div>
+    <h2>Writing Options, Margin, Market Conventions</h2>
+    <p>Buying an option is simple: pay the premium up front, the most you can lose is the premium. <strong>Writing</strong> an option is much more dangerous &mdash; you receive a small premium and take on a potentially large liability.</p>
+
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>Margin</h4>
+            <p>To stop writers walking away, the exchange demands <strong>margin</strong> &mdash; collateral posted with the clearing house. The margin is marked-to-market daily; if it falls below maintenance level the writer must top it up or the position is closed out.</p>
+            <p>Margin requirements for naked short calls are particularly punishing because the loss is unbounded.</p>
+        </div>
+        <div class="diagram-panel p">
+            <h4>Contract size and conventions</h4>
+            <p>One listed equity option in the US covers <strong>100 shares</strong>. Quoted premiums are per share. FX options are quoted as a percentage of notional; index options are cash-settled because you can't deliver an index.</p>
+            <p>Expiry is almost always a Friday; American style is the norm for listed equity options, European for index options.</p>
+        </div>
+    </div>
+
+    <h3>The four ways to take a position</h3>
+    <table>
+        <thead><tr><th>Action</th><th>Cash today</th><th>What you owe</th></tr></thead>
+        <tbody>
+            <tr><td>buy a call</td><td>$-C$</td><td>nothing (you have a right)</td></tr>
+            <tr><td>sell a call</td><td>$+C$</td><td>$\max(S_T-K,0)$, plus margin</td></tr>
+            <tr><td>buy a put</td><td>$-P$</td><td>nothing</td></tr>
+            <tr><td>sell a put</td><td>$+P$</td><td>$\max(K-S_T,0)$, plus margin</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout">
+        <div class="callout-label">Wilmott's warning</div>
+        <p>"Writing options is not an activity to undertake casually." Long positions risk only the premium; short positions risk the entire payoff, which is why margin exists.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-05">
+    <div class="slide-number">05</div>
+    <h2>Put&ndash;Call Parity</h2>
+    <p>Calls and puts on the same underlying, with the same strike and expiry, are not independent &mdash; they are linked by a no-arbitrage identity. Consider two portfolios at $t = 0$:</p>
+
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel g">
+            <h4>Portfolio A</h4>
+            <ul>
+                <li>long one call (premium $C$)</li>
+                <li>short one put (receive $P$)</li>
+            </ul>
+            <p>Payoff at $T$:</p>
+            <p>$$\max(S_T-K,0) - \max(K-S_T,0) = S_T - K.$$</p>
+        </div>
+        <div class="diagram-panel p">
+            <h4>Portfolio B</h4>
+            <ul>
+                <li>long one share (cost $S_0$)</li>
+                <li>short $K e^{-rT}$ in cash (borrow it)</li>
+            </ul>
+            <p>Payoff at $T$:</p>
+            <p>$$S_T - K.$$</p>
+        </div>
+    </div>
+
+    <p>Both portfolios deliver the same payoff at every $S_T$. By no-arbitrage they must cost the same today:</p>
+
+    <p>$$\boxed{\;C - P = S - K e^{-rT}.\;}$$</p>
+
+    <p>This is <strong>put&ndash;call parity</strong>. It is model-free &mdash; no stochastic process, no volatility, no Black&ndash;Scholes &mdash; it follows from no-arbitrage alone, exactly like the forward price in Deck 01.</p>
+
+    <h3>Synthetic stock</h3>
+    <p>Rearrange:</p>
+    <p>$$S = C - P + K e^{-rT}.$$</p>
+    <p>A long call plus a short put plus a deposit of $K e^{-rT}$ is a <em>synthetic share</em>. You can build any one leg from the others; that is why a market in calls fully determines the market in puts.</p>
+
+    <div class="callout">
+        <div class="callout-label">Practical use</div>
+        <p>Traders watch the parity residual $C - P - S + K e^{-rT}$ in real time. A persistent non-zero value signals either a quoting error or a hidden cost (borrow fee, dividend assumption, hard-to-borrow stock).</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-06">
+    <div class="slide-number">06</div>
+    <h2>Binaries / Digital Options</h2>
+    <p>A <strong>binary</strong> (or <strong>digital</strong>) option pays a fixed amount if the underlying ends in a specified region at expiry, and zero otherwise.</p>
+
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel g">
+            <h4>Cash-or-nothing call</h4>
+            <p>Pays $1$ if $S_T > K$, else $0$.</p>
+            <p>$$V_T = \mathbf{1}_{\{S_T > K\}}.$$</p>
+            <p>A pure bet on direction; no exposure to the magnitude of the move.</p>
+        </div>
+        <div class="diagram-panel r">
+            <h4>Asset-or-nothing call</h4>
+            <p>Pays $S_T$ if $S_T > K$, else $0$.</p>
+            <p>$$V_T = S_T\, \mathbf{1}_{\{S_T > K\}}.$$</p>
+            <p>The ordinary call is the difference: cash-or-nothing pays $K$ on the same event, so $C_{\text{vanilla}} = V_{\text{asset}} - K\, V_{\text{cash}}$.</p>
+        </div>
+    </div>
+
+    <p>Binaries are useful as building blocks. Any payoff $f(S_T)$ that is piecewise linear in $S_T$ can be written as a portfolio of digital and vanilla options, which is how exotic books are static-hedged in practice.</p>
+
+    <div class="callout">
+        <div class="callout-label">Why traders hate digitals near expiry</div>
+        <p>The payoff is a step function. As $t \to T$ and $S$ approaches $K$, the binary's delta and gamma blow up &mdash; tiny moves in the spot flip the payoff from $0$ to $1$. The retail-friendly "binary option" of online broker fame is the same instrument, and the same risk-management nightmare.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-07">
+    <div class="slide-number">07</div>
+    <h2>Vertical Spreads &mdash; Bulls and Bears</h2>
+    <p>A <strong>vertical spread</strong> is two options of the same type and expiry, different strikes. The first family of strategies that bound both the upside and the downside.</p>
+
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel g">
+            <h4>Bull call spread</h4>
+            <p>Long a call at $K_1$, short a call at $K_2 > K_1$.</p>
+            <p>$$V_T = \max(S_T - K_1, 0) - \max(S_T - K_2, 0).$$</p>
+            <p>Payoff: $0$ below $K_1$, slope $+1$ between $K_1$ and $K_2$, capped at $K_2 - K_1$ above.</p>
+            <p>Cheaper than an outright call; you've sold the tail.</p>
+        </div>
+        <div class="diagram-panel r">
+            <h4>Bear put spread</h4>
+            <p>Long a put at $K_2$, short a put at $K_1 < K_2$.</p>
+            <p>$$V_T = \max(K_2 - S_T, 0) - \max(K_1 - S_T, 0).$$</p>
+            <p>Payoff: capped at $K_2 - K_1$ below $K_1$, slope $-1$ between $K_1$ and $K_2$, $0$ above.</p>
+            <p>Bearish view with bounded loss.</p>
+        </div>
+    </div>
+
+    <h3>Why traders use spreads</h3>
+    <ul>
+        <li><strong>Cheaper premium.</strong> Selling a wing pays for some of the long leg.</li>
+        <li><strong>Bounded P&amp;L.</strong> Both maximum profit and maximum loss are known at trade entry.</li>
+        <li><strong>Lower vega and gamma</strong> than an outright option &mdash; the two legs cancel partially.</li>
+    </ul>
+
+    <div class="callout">
+        <div class="callout-label">Naming convention</div>
+        <p>"Bull" = the spread profits if the market rises; "bear" = profits if the market falls. The names are loose &mdash; you can build a bull spread out of either calls or puts &mdash; what matters is the slope of $V_T(S_T)$.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-08">
+    <div class="slide-number">08</div>
+    <h2>Straddles, Strangles, Risk Reversals</h2>
+    <p>These are <em>volatility</em> strategies: trades whose P&amp;L depends on how much $S$ moves, not where it goes.</p>
+
+    <div class="diagram-grid cols-3">
+        <div class="diagram-panel g">
+            <h4>Straddle</h4>
+            <p>Long one call and one put, <em>same</em> strike $K$ (usually ATM).</p>
+            <p>$$V_T = |S_T - K|.$$</p>
+            <p>V-shape with minimum at $K$. Profitable if $S$ moves far enough in either direction to overcome the combined premium.</p>
+        </div>
+        <div class="diagram-panel b">
+            <h4>Strangle</h4>
+            <p>Long a call at $K_2$ and a put at $K_1 < K_2$.</p>
+            <p>Cheaper than a straddle (both legs OTM) but needs a bigger move to pay off. Flat between the strikes, V-shaped outside.</p>
+        </div>
+        <div class="diagram-panel p">
+            <h4>Risk reversal</h4>
+            <p>Long a call at $K_2$, short a put at $K_1 < K_2$ (or vice versa).</p>
+            <p>Used in FX. A synthetic forward with a "dead zone" between the strikes &mdash; cheap or even zero-cost depending on the skew.</p>
+        </div>
+    </div>
+
+    <h3>What you are really trading</h3>
+    <table>
+        <thead><tr><th>Strategy</th><th>You profit when&hellip;</th><th>Greek you're long</th></tr></thead>
+        <tbody>
+            <tr><td>long straddle</td><td>realised vol &gt; implied vol</td><td>vega, gamma</td></tr>
+            <tr><td>short straddle</td><td>$S$ stays near $K$</td><td>theta</td></tr>
+            <tr><td>long strangle</td><td>large move in either direction</td><td>vega (cheaper)</td></tr>
+            <tr><td>risk reversal</td><td>directional view + skew view</td><td>delta + skew</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout">
+        <div class="callout-label">Volatility as an asset</div>
+        <p>The point of slides 7-9 is that by combining options you can shape your P&amp;L to bet on volatility, skew, or kurtosis &mdash; not just direction. Decks 6-8 explain how that exposure is priced.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-09">
+    <div class="slide-number">09</div>
+    <h2>Butterflies, Condors, Calendars and OTC Cousins</h2>
+    <p>One more turn of the screw: three options instead of two, four instead of three, different expiries instead of different strikes.</p>
+
+    <div class="diagram-grid cols-3">
+        <div class="diagram-panel accent-border">
+            <h4>Butterfly</h4>
+            <p>Long at $K_1$ and $K_3$, short two at $K_2 = (K_1+K_3)/2$.</p>
+            <p>Tent-shaped payoff peaking at $K_2$. Profits if $S_T$ lands near $K_2$. A bounded short-vol play.</p>
+        </div>
+        <div class="diagram-panel g">
+            <h4>Condor</h4>
+            <p>Long at $K_1, K_4$; short at $K_2, K_3$ with $K_1 < K_2 < K_3 < K_4$.</p>
+            <p>Flat-topped trapezoid. Like a butterfly with a wider sweet spot.</p>
+        </div>
+        <div class="diagram-panel b">
+            <h4>Calendar spread</h4>
+            <p>Same strike, different expiries: short a near-dated option, long a far-dated one (or vice versa).</p>
+            <p>Trades the term structure of volatility and the differential theta decay.</p>
+        </div>
+    </div>
+
+    <h3>OTC cousins (brief)</h3>
+    <ul>
+        <li><strong>Warrants.</strong> Long-dated call options issued by a company on its own stock. Exercising creates new shares (dilutes).</li>
+        <li><strong>Convertible bonds.</strong> Corporate bonds with an embedded call on the issuer's equity &mdash; bond + option in a single instrument.</li>
+        <li><strong>LEAPS.</strong> Exchange-listed options with expiries out to several years; otherwise identical to ordinary listed options.</li>
+        <li><strong>OTC options.</strong> Negotiated bilaterally with a bank; no exchange, no margin, but full counterparty risk. Strikes, expiries and payoffs are bespoke.</li>
+    </ul>
+
+    <div class="callout">
+        <div class="callout-label">Building block view</div>
+        <p>Every payoff on this slide is a finite sum of vanilla calls and puts &mdash; the same four cardinal positions of slide 01. The whole catalogue of strategies is just linear algebra over those four basis vectors.</p>
+    </div>
+</section>
+
+<section class="slide" id="slide-10">
+    <div class="slide-number">10</div>
+    <h2>Interactive: Option Strategy Composer</h2>
+    <p>Add legs (long/short call/put), set each strike and premium, and watch the total payoff $V_T(S_T)$ (yellow) and the P&amp;L (green) update. Breakevens and net premium appear in the metrics.</p>
+
+    <div class="canvas-wrap">
+        <canvas id="strat-canvas" width="780" height="340"></canvas>
+    </div>
+
+    <div class="control-panel">
+        <div id="legs-list"></div>
+        <div class="control-row" style="margin-top:0.5rem;">
+            <button class="btn" id="add-call-long">+ long call</button>
+            <button class="btn" id="add-call-short">+ short call</button>
+            <button class="btn" id="add-put-long">+ long put</button>
+            <button class="btn" id="add-put-short">+ short put</button>
+            <button class="btn secondary" id="preset-straddle">straddle</button>
+            <button class="btn secondary" id="preset-bull">bull spread</button>
+            <button class="btn secondary" id="preset-fly">butterfly</button>
+            <button class="btn secondary" id="preset-clear">clear</button>
+        </div>
+        <div class="control-row">
+            <label for="spot-slider">Spot $S$ for reference</label>
+            <input type="range" id="spot-slider" min="50" max="150" step="0.5" value="100">
+            <span class="val" id="spot-val">100.00</span>
+        </div>
+        <div class="metric-grid">
+            <div class="metric"><div class="metric-label">Legs</div><div class="metric-value" id="m-nlegs">0</div></div>
+            <div class="metric"><div class="metric-label">Net premium paid</div><div class="metric-value" id="m-prem">&mdash;</div></div>
+            <div class="metric"><div class="metric-label">Max P&amp;L (in range)</div><div class="metric-value" id="m-max">&mdash;</div></div>
+            <div class="metric"><div class="metric-label">Min P&amp;L (in range)</div><div class="metric-value" id="m-min">&mdash;</div></div>
+            <div class="metric"><div class="metric-label">Breakevens</div><div class="metric-value" id="m-be">&mdash;</div></div>
+        </div>
+    </div>
+
+    <p>Try the presets: a <em>straddle</em> is V-shaped (long volatility); a <em>bull spread</em> is the truncated ramp of slide 07; a <em>butterfly</em> is the tent of slide 09. The P&amp;L curve sits below the payoff by the net premium &mdash; that's all option pricing is about, ultimately: how much is "paying for the payoff" worth?</p>
+</section>
+
+<footer class="footer">
+    <p>Deck 02 of the <a href="https://github.com/BrendanJamesLynskey/Wilmott_QF_Hub">Paul Wilmott Introduces Quantitative Finance &mdash; Companion Series</a>.</p>
+    <p style="margin-top: 0.6rem;">Companion to chapter 2 of <em>Paul Wilmott Introduces Quantitative Finance</em>, 2nd edition (Wiley, 2007).</p>
+</footer>
+
+<script>
+// ===== Slide 03 payoff diagram (static) =====
+(function() {
+    const canvas = document.getElementById('payoff-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const padL = 50, padR = 20, padT = 30, padB = 40;
+    const cellW = (W - padL - padR) / 2;
+    const cellH = (H - padT - padB) / 2;
+    const K = 100;
+    const Smin = 60, Smax = 140;
+
+    const panels = [
+        { row:0, col:0, color:'#34d399', title:'long call',  fn: s => Math.max(s-K, 0) },
+        { row:0, col:1, color:'#f472b6', title:'short call', fn: s => -Math.max(s-K, 0) },
+        { row:1, col:0, color:'#a78bfa', title:'long put',   fn: s => Math.max(K-s, 0) },
+        { row:1, col:1, color:'#60a5fa', title:'short put',  fn: s => -Math.max(K-s, 0) },
+    ];
+
+    ctx.clearRect(0,0,W,H);
+
+    panels.forEach(p => {
+        const x0 = padL + p.col * cellW;
+        const y0 = padT + p.row * cellH;
+        const w = cellW - 14, h = cellH - 14;
+
+        // y range symmetric
+        const yMax = 40, yMin = -40;
+        const x2px = s => x0 + (s - Smin)/(Smax-Smin) * w;
+        const y2px = y => y0 + h - (y - yMin)/(yMax-yMin) * h;
+
+        // background frame
+        ctx.strokeStyle = '#21262d';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x0, y0, w, h);
+
+        // zero axes
+        ctx.strokeStyle = '#3a4252';
+        ctx.beginPath();
+        ctx.moveTo(x0, y2px(0)); ctx.lineTo(x0+w, y2px(0));
+        ctx.moveTo(x2px(K), y0); ctx.lineTo(x2px(K), y0+h);
+        ctx.stroke();
+
+        // payoff curve
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        for (let i = 0; i <= 100; i++) {
+            const s = Smin + i/100 * (Smax-Smin);
+            const v = p.fn(s);
+            if (i === 0) ctx.moveTo(x2px(s), y2px(v));
+            else ctx.lineTo(x2px(s), y2px(v));
+        }
+        ctx.stroke();
+
+        // labels
+        ctx.fillStyle = p.color;
+        ctx.font = '12px JetBrains Mono';
+        ctx.fillText(p.title, x0 + 6, y0 + 14);
+        ctx.fillStyle = '#8b949e';
+        ctx.font = '10px JetBrains Mono';
+        ctx.fillText('K', x2px(K) + 3, y0 + h - 4);
+    });
+})();
+</script>
+
+<script>
+// ===== Slide 10: option strategy composer =====
+(function() {
+    const $ = id => document.getElementById(id);
+    const canvas = $('strat-canvas'), ctx = canvas.getContext('2d');
+    const list = $('legs-list');
+    const spotS = $('spot-slider'), spotV = $('spot-val');
+
+    let legs = []; // {type:'C'|'P', dir:+1|-1, K, prem}
+    let nextId = 0;
+
+    function renderLegs() {
+        list.innerHTML = '';
+        legs.forEach(leg => {
+            const div = document.createElement('div');
+            div.className = 'leg-row';
+            const dirTxt = leg.dir > 0 ? 'long' : 'short';
+            const typeTxt = leg.type === 'C' ? 'call' : 'put';
+            div.innerHTML = `
+                <label>${dirTxt} ${typeTxt}</label>
+                <label style="min-width:30px;">K</label>
+                <input type="range" min="50" max="150" step="0.5" value="${leg.K}" data-id="${leg.id}" data-k="K" style="flex:1;min-width:120px;">
+                <span class="val" style="min-width:50px;">${leg.K.toFixed(1)}</span>
+                <label style="min-width:50px;">prem</label>
+                <input type="range" min="0" max="20" step="0.1" value="${leg.prem}" data-id="${leg.id}" data-k="prem" style="flex:1;min-width:100px;">
+                <span class="val" style="min-width:45px;">${leg.prem.toFixed(2)}</span>
+                <button class="leg-rm" data-id="${leg.id}">remove</button>
+            `;
+            list.appendChild(div);
+        });
+        list.querySelectorAll('input[type="range"]').forEach(inp => {
+            inp.addEventListener('input', e => {
+                const id = +e.target.dataset.id;
+                const k = e.target.dataset.k;
+                const leg = legs.find(l => l.id === id);
+                if (!leg) return;
+                leg[k] = +e.target.value;
+                renderLegs();
+                draw();
+            });
+        });
+        list.querySelectorAll('.leg-rm').forEach(btn => {
+            btn.addEventListener('click', e => {
+                const id = +e.target.dataset.id;
+                legs = legs.filter(l => l.id !== id);
+                renderLegs();
+                draw();
+            });
+        });
+    }
+
+    function addLeg(type, dir, K, prem) {
+        legs.push({ id: nextId++, type, dir, K, prem });
+        renderLegs();
+        draw();
+    }
+
+    function payoffAt(s) {
+        let v = 0;
+        legs.forEach(l => {
+            if (l.type === 'C') v += l.dir * Math.max(s - l.K, 0);
+            else                v += l.dir * Math.max(l.K - s, 0);
+        });
+        return v;
+    }
+    function netPremium() {
+        // premium PAID by us = +dir * prem (long pays, short receives)
+        let p = 0;
+        legs.forEach(l => p += l.dir * l.prem);
+        return p;
+    }
+
+    function draw() {
+        const W = canvas.width, H = canvas.height;
+        const padL = 60, padR = 30, padT = 25, padB = 45;
+        const plotW = W - padL - padR, plotH = H - padT - padB;
+        const Smin = 50, Smax = 150;
+        const Sref = +spotS.value;
+        spotV.textContent = Sref.toFixed(2);
+
+        ctx.clearRect(0,0,W,H);
+
+        // sample
+        const N = 400;
+        const xs = [], pys = [], pnls = [];
+        for (let i = 0; i <= N; i++) {
+            const s = Smin + i/N * (Smax - Smin);
+            xs.push(s);
+            pys.push(payoffAt(s));
+            pnls.push(payoffAt(s) - netPremium());
+        }
+        let yMin = -2, yMax = 2;
+        pys.concat(pnls).forEach(v => { if (v < yMin) yMin = v; if (v > yMax) yMax = v; });
+        const pad = 0.15 * (yMax - yMin || 1);
+        yMin -= pad; yMax += pad;
+
+        const x2px = s => padL + (s - Smin)/(Smax - Smin) * plotW;
+        const y2px = y => padT + plotH - (y - yMin)/(yMax - yMin) * plotH;
+
+        // grid
+        ctx.strokeStyle = '#21262d'; ctx.lineWidth = 1;
+        for (let i = 0; i <= 10; i++) {
+            const x = padL + i/10 * plotW;
+            ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, padT + plotH); ctx.stroke();
+        }
+        for (let i = 0; i <= 6; i++) {
+            const y = padT + i/6 * plotH;
+            ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL + plotW, y); ctx.stroke();
+        }
+
+        // axes
+        ctx.strokeStyle = '#3a4252'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(padL, y2px(0)); ctx.lineTo(padL + plotW, y2px(0)); ctx.stroke();
+
+        // x ticks
+        ctx.fillStyle = '#8b949e'; ctx.font = '10px JetBrains Mono';
+        for (let s = 60; s <= 150; s += 20) {
+            ctx.fillText(s.toString(), x2px(s) - 8, padT + plotH + 14);
+        }
+        // y ticks
+        for (let i = 0; i <= 4; i++) {
+            const y = yMin + i/4 * (yMax - yMin);
+            ctx.fillText(y.toFixed(1), 8, y2px(y) + 4);
+        }
+
+        // P&L curve (green)
+        ctx.strokeStyle = '#34d399'; ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let i = 0; i <= N; i++) {
+            const x = x2px(xs[i]), y = y2px(pnls[i]);
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // Payoff curve (yellow)
+        ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        for (let i = 0; i <= N; i++) {
+            const x = x2px(xs[i]), y = y2px(pys[i]);
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // reference spot
+        ctx.strokeStyle = '#60a5fa'; ctx.setLineDash([3,3]);
+        ctx.beginPath();
+        ctx.moveTo(x2px(Sref), padT); ctx.lineTo(x2px(Sref), padT + plotH);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#60a5fa';
+        ctx.fillText('S=' + Sref.toFixed(1), x2px(Sref) + 4, padT + 12);
+
+        // legend
+        ctx.fillStyle = '#fbbf24'; ctx.fillText('— payoff V_T', padL + 8, padT + 14);
+        ctx.fillStyle = '#34d399'; ctx.fillText('— P&L = V_T − net premium', padL + 8, padT + 28);
+
+        // axis labels
+        ctx.fillStyle = '#8b949e';
+        ctx.fillText('S_T', padL + plotW - 18, padT + plotH + 30);
+        ctx.save();
+        ctx.translate(14, padT + plotH/2 + 30);
+        ctx.rotate(-Math.PI/2);
+        ctx.fillText('value at expiry', 0, 0);
+        ctx.restore();
+
+        // metrics
+        $('m-nlegs').textContent = legs.length.toString();
+        const prem = netPremium();
+        $('m-prem').textContent = (prem >= 0 ? '+' : '') + prem.toFixed(2);
+
+        let mx = -Infinity, mn = Infinity;
+        pnls.forEach(v => { if (v > mx) mx = v; if (v < mn) mn = v; });
+        $('m-max').textContent = legs.length ? (mx === Infinity ? '∞' : mx.toFixed(2)) : '—';
+        $('m-min').textContent = legs.length ? (mn === -Infinity ? '−∞' : mn.toFixed(2)) : '—';
+
+        // breakevens: zero-crossings of pnl
+        const be = [];
+        for (let i = 1; i <= N; i++) {
+            if (pnls[i-1] === 0) be.push(xs[i-1]);
+            else if (pnls[i-1] * pnls[i] < 0) {
+                const t = pnls[i-1] / (pnls[i-1] - pnls[i]);
+                be.push(xs[i-1] + t * (xs[i] - xs[i-1]));
+            }
+        }
+        // de-dup nearby
+        const beU = [];
+        be.forEach(b => { if (!beU.length || Math.abs(b - beU[beU.length-1]) > 0.4) beU.push(b); });
+        $('m-be').textContent = legs.length === 0 ? '—' : (beU.length ? beU.map(b => b.toFixed(1)).join(', ') : 'none');
+
+        // mark breakevens on curve
+        beU.forEach(b => {
+            ctx.fillStyle = '#f472b6';
+            ctx.beginPath();
+            ctx.arc(x2px(b), y2px(0), 4, 0, 2*Math.PI);
+            ctx.fill();
+        });
+    }
+
+    // buttons
+    $('add-call-long').addEventListener('click',  () => addLeg('C', +1, 100, 5));
+    $('add-call-short').addEventListener('click', () => addLeg('C', -1, 100, 5));
+    $('add-put-long').addEventListener('click',   () => addLeg('P', +1, 100, 5));
+    $('add-put-short').addEventListener('click',  () => addLeg('P', -1, 100, 5));
+
+    $('preset-clear').addEventListener('click', () => {
+        legs = []; renderLegs(); draw();
+    });
+    $('preset-straddle').addEventListener('click', () => {
+        legs = []; nextId = 0;
+        addLeg('C', +1, 100, 5);
+        addLeg('P', +1, 100, 5);
+    });
+    $('preset-bull').addEventListener('click', () => {
+        legs = []; nextId = 0;
+        addLeg('C', +1,  95, 7);
+        addLeg('C', -1, 110, 2);
+    });
+    $('preset-fly').addEventListener('click', () => {
+        legs = []; nextId = 0;
+        addLeg('C', +1,  90, 12);
+        addLeg('C', -1, 100, 5);
+        addLeg('C', -1, 100, 5);
+        addLeg('C', +1, 110, 1);
+    });
+
+    spotS.addEventListener('input', draw);
+
+    // start with a straddle so something is on screen
+    addLeg('C', +1, 100, 5);
+    addLeg('P', +1, 100, 5);
+})();
+</script>
+</body>
+</html>
